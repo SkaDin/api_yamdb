@@ -1,38 +1,40 @@
 from django.db import models
+from .validators import validator_year
 
-
-
-class Category(models.Model):
-    name = models.CharField('Наименование катерогии', max_length=256)
+class CategoryGenreBase(models.Model):
+    name = models.CharField('Наименование', max_length=256)
     slug = models.SlugField(
         'Слаг',
         max_length=50,
-        unique=True,
-    )
-
-    def __str__(self):
-        return self.slug
-
-
-class Genre(models.Model):
-    name = models.CharField('Наименование жанра', max_length=256)
-    slug = models.SlugField(
-        'Слаг',
-        max_length=56,
         unique=True
     )
-
     def __str__(self):
-        return self.slug
+        return self.name
+    class Meta:
+        abstract = True
+
+
+
+class Category(CategoryGenreBase):
+    class Meta:
+        verbose_name = 'Категория'
+
+
+class Genre(CategoryGenreBase):
+    class Meta:
+        verbose_name = 'Жанр'
 
 
 class Title(models.Model):
     name = models.CharField('Наименование произведения', max_length=256)
-    year = models.IntegerField('Год выпуска')
+    year = models.IntegerField(
+        'Год выпуска',
+        validators=[validator_year],
+    )
     description = models.TextField('Описание')
     genre = models.ManyToManyField(
         Genre,
-        on_delete = models.CASCADE,
+        on_delete = models.SET_NULL,
         db_index=True,
         related_name='titles',
         verbose_name='Жанр'

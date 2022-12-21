@@ -1,3 +1,4 @@
+
 from rest_framework.viewsets import ModelViewSet, GenericViewSet
 from reviews.models import Category, Genre, Title
 from api.serializers import (
@@ -11,6 +12,13 @@ from rest_framework.mixins import (
     ListModelMixin,
     DestroyModelMixin
 )
+from rest_framework import viewsets, mixins
+from rest_framework.permissions import AllowAny
+from django.contrib.auth import get_user_model
+from .serializers import RegisterSerializer
+
+
+User = get_user_model()
 
 
 class CategoryGenreViewSet(
@@ -38,3 +46,17 @@ class GenreViewSet(CategoryGenreViewSet):
 class TitleViewSet(ModelViewSet):
     queryset = Title.objects.all()
     serializer_class = TitleSerializer
+
+
+
+class CreateOnlyViewSet(mixins.CreateModelMixin, viewsets.GenericViewSet):
+    pass
+
+
+class RegisterViewSet(CreateOnlyViewSet):
+    """View set of User model."""
+    queryset = User.objects.all()
+    serializer_class = RegisterSerializer
+    permission_classes = (AllowAny,)
+
+

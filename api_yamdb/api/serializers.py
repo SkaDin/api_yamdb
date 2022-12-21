@@ -1,5 +1,8 @@
 from django.contrib.auth import get_user_model
 from rest_framework import serializers
+from rest_framework.serializers import ModelSerializer
+from reviews.models import Genre, Category, Title
+
 
 User = get_user_model()
 
@@ -31,3 +34,21 @@ class RegisterSerializer(serializers.ModelSerializer):
         )
         user.save()
         return user
+
+
+class GenreSerializer(ModelSerializer):
+    class Meta:
+        fields = '__all__'
+        model = Genre
+
+
+class CategorySerializer(ModelSerializer):
+    class Meta:
+        fields = '__all__'
+        model = Category
+
+
+class TitleSerializer(ModelSerializer):
+    class Meta:
+        fields = '__all__'
+        model = Title

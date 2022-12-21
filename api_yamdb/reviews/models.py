@@ -1,6 +1,7 @@
 from django.db import models
 from .validators import validator_year
 
+
 class CategoryGenreBase(models.Model):
     name = models.CharField('Наименование', max_length=256)
     slug = models.SlugField(
@@ -34,7 +35,6 @@ class Title(models.Model):
     description = models.TextField('Описание')
     genre = models.ManyToManyField(
         Genre,
-        on_delete = models.SET_NULL,
         db_index=True,
         related_name='titles',
         verbose_name='Жанр'

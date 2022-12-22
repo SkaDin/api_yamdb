@@ -1,5 +1,6 @@
 from django.contrib.auth import get_user_model
 from rest_framework import serializers
+from django.conf import settings
 
 User = get_user_model()
 
@@ -22,10 +23,12 @@ class RegisterSerializer(serializers.ModelSerializer):
         fields = ('username', 'email', 'first_name', 'last_name')
 
     def create(self, validated_data):
-        # TODO Create method to send emails with verification code.
         user = User.objects.create(
             username=validated_data['username'],
             email=validated_data['email'],
         )
         user.save()
+        email_from = settings.EMAIL_HOST_USER
+        user.email_user('Verification Code', 'Here is verification code',
+                        email_from)
         return user

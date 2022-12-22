@@ -1,3 +1,4 @@
+import os
 from pathlib import Path
 
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -101,7 +102,13 @@ STATICFILES_DIRS = ((BASE_DIR / 'static/'),)
 AUTH_USER_MODEL = 'users.User'
 
 USER_ROLES = {
-    'ADMIN': 1,
-    'MODERATOR': 2,
-    'USER': 3
+    'ADMIN': 'admin',
+    'MODERATOR': 'moderator',
+    'USER': 'user'
 }
+
+EMAIL_USE_TLS = True
+EMAIL_HOST = 'imap.yandex.ru'
+EMAIL_PORT = 587
+EMAIL_HOST_USER = os.environ.get('EMAIL_HOST_USER')
+EMAIL_HOST_PASSWORD = os.environ.get('EMAIL_HOST_PASSWORD')

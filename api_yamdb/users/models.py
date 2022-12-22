@@ -6,14 +6,16 @@ from django.db import models
 class User(AbstractUser):
     USER_ROLES = (
         settings.USER_ROLES if hasattr(settings, 'USER_ROLES')
-        else {'USER': 3})
+        else {'USER': 'user'})
 
     ROLE_CHOICES = ((value, role.capitalize()) for role, value in
                     USER_ROLES.items())
 
-    role = models.PositiveSmallIntegerField(choices=ROLE_CHOICES,
-                                            default=USER_ROLES.get('USER'))
+    role = models.CharField(choices=ROLE_CHOICES,
+                            default=USER_ROLES.get('USER'), max_length=50)
     is_verified = models.BooleanField(default=False)
+
+    bio = models.TextField(blank=True, null=True)
 
     @property
     def is_admin(self):

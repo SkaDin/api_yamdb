@@ -50,5 +50,12 @@ class CategorySerializer(ModelSerializer):
 
 class TitleSerializer(ModelSerializer):
     class Meta:
-        fields = '__all__'
         model = Title
+        fields = (
+            'id',
+            'name',
+            'year',
+            'description',
+            'genre',
+            'category'
+        )

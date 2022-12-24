@@ -1,6 +1,7 @@
 from django.db import models
 from .validators import validator_year
 
+
 class CategoryGenreBase(models.Model):
     name = models.CharField('Наименование', max_length=256)
     slug = models.SlugField(
@@ -8,11 +9,12 @@ class CategoryGenreBase(models.Model):
         max_length=50,
         unique=True
     )
+
     def __str__(self):
         return self.name
+
     class Meta:
         abstract = True
-
 
 
 class Category(CategoryGenreBase):

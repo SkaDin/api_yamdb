@@ -5,13 +5,7 @@ from rest_framework.response import Response
 from django.shortcuts import get_object_or_404
 from .serializers import RegisterSerializer, TokenObtainPairSerializer
 from rest_framework.viewsets import ModelViewSet, GenericViewSet
-from reviews.models import Category, Genre, Title
 from rest_framework_simplejwt.tokens import RefreshToken
-from api.serializers import (
-    CategorySerializer,
-    GenreSerializer,
-    TitleSerializer,
-)
 from rest_framework.filters import SearchFilter
 from rest_framework.mixins import (
     CreateModelMixin,
@@ -19,12 +13,19 @@ from rest_framework.mixins import (
     DestroyModelMixin
 )
 
+from api.serializers import (
+    CategorySerializer,
+    GenreSerializer,
+    TitleSerializer,
+    ReviewSerializer
+)
 from api.permissions import (
     IsAuthenticatedOrReadOnly,
     UserPermissions,
     ModeratorPermissions,
     AdminPermissions,
 )
+from reviews.models import Category, Genre, Title, Review
 
 
 User = get_user_model()
@@ -32,6 +33,12 @@ User = get_user_model()
 
 class CreateOnlyViewSet(mixins.CreateModelMixin, viewsets.GenericViewSet):
     pass
+
+
+class ReviewViewSet(viewsets.ModelViewSet):
+    queryset = Review.objects.all()
+    serializer_class = ReviewSerializer
+    permission_classes = (IsAuthenticatedOrReadOnly,)
 
 
 class RegisterViewSet(CreateOnlyViewSet):

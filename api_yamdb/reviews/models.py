@@ -1,5 +1,8 @@
 from django.db import models
 from .validators import validator_year
+import inflect
+
+from users.models import User
 
 
 class CategoryGenreBase(models.Model):
@@ -15,6 +18,25 @@ class CategoryGenreBase(models.Model):
 
     class Meta:
         abstract = True
+
+
+class Review(models.Model):
+    text = models.CharField(
+        max_length=400, verbose_name='Текст комментария:',
+        help_text='Опишите свои впечатления:'
+    )
+    author = models.ForeignKey(
+        User,
+        related_name='reviews',
+        on_delete=models.CASCADE,
+    )
+    pub_date = models.DateTimeField(
+        'Дата публикации:', auto_now_add=True
+    )
+    score = models.IntegerField(
+        default=None,
+        choices=[(x, inflect.engine().number_to_words(x)) for x in range(1, 11)]
+    )
 
 
 class Category(CategoryGenreBase):

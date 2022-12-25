@@ -52,24 +52,26 @@ class TokenObtainPairSerializer(serializers.ModelSerializer):
 
 class GenreSerializer(ModelSerializer):
     class Meta:
-        fields = '__all__'
+        exclude = ('id',)
         model = Genre
 
 
 class CategorySerializer(ModelSerializer):
     class Meta:
-        fields = '__all__'
+        exclude = ('id',)
         model = Category
 
 
 class TitleSerializer(ModelSerializer):
+    category = serializers.SlugRelatedField(
+        queryset=Category.objects.all(),
+        slug_field='slug'
+    )
+    genre = serializers.SlugRelatedField(
+        queryset=Category.objects.all(),
+        slug_field='slug',
+        many=True
+    )
     class Meta:
         model = Title
-        fields = (
-            'id',
-            'name',
-            'year',
-            'description',
-            'genre',
-            'category'
-        )
+        fields = '__all__'

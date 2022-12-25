@@ -7,7 +7,8 @@ class CategoryGenreBase(models.Model):
     slug = models.SlugField(
         'Слаг',
         max_length=50,
-        unique=True
+        unique=True,
+        db_index=True
     )
 
     def __str__(self):

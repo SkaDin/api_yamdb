@@ -3,18 +3,61 @@ from rest_framework import serializers
 from rest_framework.serializers import ModelSerializer
 from rest_framework.validators import UniqueTogetherValidator
 from rest_framework.authtoken.models import Token
-import re
+import regex as re
 
 from reviews.models import Genre, Category, Title
 
 User = get_user_model()
 
 
+class UsernameValidator:
+    requires_context = True
+    format_message = 'Username format is invalid.'
+    length_message = 'Username is too long.'
+    LENGTH = 150
+
+    def __init__(self, queryset, fields):
+        self.queryset = queryset
+
+    def __call__(self, attrs, serializer):
+        pattern = re.compile('(?=(^(?!me$)))(?=(^[\w.@+-]+\Z))')
+        username = attrs.get('username')
+        if self.queryset.filter(username=username).exists():
+            raise serializers.ValidationError(
+                "Username %s already exists" % username)
+        if not re.match(pattern, username):
+            raise serializers.ValidationError(self.format_message)
+        if len(username) > self.LENGTH:
+            raise serializers.ValidationError(self.length_message)
+
+
+class EmailValidator:
+    requires_context = True
+    message = 'Email format is invalid'
+    LENGTH = 254
+
+    def __init__(self, queryset, fields, ):
+        self.queryset = queryset
+
+    def __call__(self, attrs, serializer):
+        email = attrs.get('email')
+        # if self.queryset.filter(email=email).exists():
+        #     raise serializers.ValidationError("Email is not unique")
+        if len(attrs.get('email')) > self.LENGTH:
+            raise serializers.ValidationError(self.message)
+
+
 class UserSerializer(serializers.ModelSerializer):
     """User model serializer."""
 
     class Meta:
-        fields = '__all__'
+        fields = (
+            'username',
+            'email',
+            'first_name',
+            'last_name',
+            'bio',
+            'role')
         model = User
 
 
@@ -27,18 +70,20 @@ class RegisterSerializer(serializers.ModelSerializer):
         model = User
         fields = ('username', 'email',)
         validators = [
-            UniqueTogetherValidator(
+            UsernameValidator(
                 queryset=model.objects.all(),
-                fields=['username', 'email'],
-                message='Already exists.'
+                fields=['username', ],
+            ),
+            EmailValidator(
+                queryset=model.objects.all(),
+                fields=['email', ]
             )
         ]
 
-    def validate_username(self, username):
-        pattern = re.compile('^[\w.@+-]+\Z')
-        if not re.match(pattern, username):
-            raise serializers.ValidationError('Username format is invalid')
-        return username
+    def create(self, validated_data):
+        instance, _ = User.objects.get_or_create(
+            **validated_data)
+        return instance
 
 
 class TokenObtainPairSerializer(serializers.ModelSerializer):

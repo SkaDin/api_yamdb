@@ -28,11 +28,3 @@ class User(AbstractUser):
     @property
     def is_user(self):
         return self.role == self.USER_ROLES.get('USER')
-
-    class Meta:
-        constraints = [
-            models.UniqueConstraint(
-                fields=['username', 'email'],
-                name='User with such username and email is already registered',
-            )
-        ]

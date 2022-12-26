@@ -18,7 +18,6 @@ v1_router.register(
     ReviewViewSet, basename='reviews'
 )
 
-
 urlpatterns = [
     path('v1/', include(v1_router.urls)),
 ]

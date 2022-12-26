@@ -4,7 +4,7 @@ from rest_framework.serializers import ModelSerializer
 from rest_framework.validators import UniqueTogetherValidator
 from rest_framework.authtoken.models import Token
 import re
-
+from django.db.models import Avg
 from reviews.models import Genre, Category, Title, Review
 
 User = get_user_model()
@@ -107,20 +107,29 @@ class CategorySerializer(ModelSerializer):
         model = Category
 
 
-class TitleSerializer(ModelSerializer):
+class TitleCreateSerializer(serializers.ModelSerializer):
     category = serializers.SlugRelatedField(
-        queryset=Category.objects.all(),
-        slug_field='slug'
+        slug_field='slug', queryset=Category.objects.all(),
     )
     genre = serializers.SlugRelatedField(
-        queryset=Category.objects.all(),
-        slug_field='slug',
-        many=True
+        slug_field='slug', queryset=Genre.objects.all(), many=True
     )
 
     class Meta:
         model = Title
-        fields = '__all__'
+        fields = (
+            'id', 'name', 'year', 'description', 'genre', 'category'
+        )
+
+class TitleSerializer(serializers.ModelSerializer):
+    category = CategorySerializer()
+    genre = GenreSerializer(many=True)
+
+    class Meta:
+        model = Title
+        fields = (
+            'id', 'name', 'year', 'description', 'genre', 'category'
+        )
 
 
 class ReviewSerializer(ModelSerializer):
@@ -134,10 +143,11 @@ class ReviewSerializer(ModelSerializer):
             'id',
             'text',
             'author',
-            'score'
+            'score',
             'pub_date',
             'title'
         )
         extra_kwargs = {
             'title': {'write_only': True}
         }
+    

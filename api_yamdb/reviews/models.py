@@ -72,7 +72,10 @@ class Review(models.Model):
     )
     score = models.IntegerField(
         default=None,
-        choices=[(x, inflect.engine().number_to_words(x)) for x in range(1, 11)]
+        choices=[
+            (
+                x, inflect.engine().number_to_words(x)
+            ) for x in range(1, 11)]
     )
     title = models.ForeignKey(
         Title, related_name='titles',

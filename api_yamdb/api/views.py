@@ -1,11 +1,19 @@
+from .permissions import AdminPermissions
 from rest_framework import viewsets, mixins, status
-from rest_framework.permissions import AllowAny, IsAuthenticated
+from rest_framework.permissions import AllowAny
 from django.contrib.auth import get_user_model
 from rest_framework.response import Response
 from django.shortcuts import get_object_or_404
-from .serializers import RegisterSerializer, TokenObtainPairSerializer
+from .serializers import RegisterSerializer, TokenObtainPairSerializer, \
+    UserSerializer
 from rest_framework.viewsets import ModelViewSet, GenericViewSet
 from rest_framework_simplejwt.tokens import RefreshToken
+from api.serializers import (
+    CategorySerializer,
+    GenreSerializer,
+    TitleSerializer,
+)
+from rest_framework.pagination import PageNumberPagination
 from rest_framework.filters import SearchFilter
 from rest_framework.mixins import (
     CreateModelMixin,
@@ -34,29 +42,36 @@ from reviews.models import Category, Genre, Title, Review
 User = get_user_model()
 
 
-class CreateOnlyViewSet(mixins.CreateModelMixin, viewsets.GenericViewSet):
+class CreateViewSet(mixins.CreateModelMixin, viewsets.GenericViewSet):
+    def create(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        self.perform_create(serializer)
+        headers = self.get_success_headers(serializer.data)
+        return Response(serializer.data, status=status.HTTP_200_OK,
+                        headers=headers)
+
+
+class ListViewSet(mixins.ListModelMixin,
+                  viewsets.GenericViewSet):
     pass
 
 
-class ReviewViewSet(viewsets.ModelViewSet):
-    queryset = Review.objects.all()
-    serializer_class = ReviewSerializer
-    permission_classes = (IsAuthenticatedOrReadOnly,)
-
-    def perform_create(self, serializer):
-        serializer.save(
-            author=self.request.user,
-        )
+class UserViewSet(ModelViewSet):
+    queryset = User.objects.all()
+    serializer_class = UserSerializer
+    permission_classes = (AdminPermissions,)  # Todo Set Permission to IsAuthenticated
+    pagination_class = PageNumberPagination
 
 
-class RegisterViewSet(CreateOnlyViewSet):
-    """View set of User model."""
+class RegisterViewSet(CreateViewSet):
+    """View set of users registration."""
     queryset = User.objects.all()
     serializer_class = RegisterSerializer
     permission_classes = (AllowAny,)
 
 
-class TokenObtainPairView(CreateOnlyViewSet):
+class TokenObtainPairView(CreateViewSet):
     serializer_class = TokenObtainPairSerializer
     permission_classes = (AllowAny,)
 
@@ -68,7 +83,7 @@ class TokenObtainPairView(CreateOnlyViewSet):
         if not (user.auth_token.key == serializer.data.get(
                 'confirmation_code')):
             return Response('Confirmation code is invalid.',
-                            status=status.HTTP_403_FORBIDDEN)
+                            status=status.HTTP_400_BAD_REQUEST)
         token = RefreshToken.for_user(user)
         user.auth_token = None
         user.is_verified = True
@@ -120,11 +135,21 @@ class GenreViewSet(CategoryGenreViewSet):
 class TitleViewSet(ModelViewSet):
     queryset = Title.objects.all().order_by('-id')
     serializer_class = TitleSerializer
-    filter_backends = (DjangoFilterBackend ,SearchFilter)
+    filter_backends = (DjangoFilterBackend, SearchFilter)
     search_fields = ('name', 'year', 'genre__slug', 'category__slug')
+
     def get_permissions(self):
         if self.action == 'list' or self.action == 'retrieve':
             return (AllowAny(),)
         return (AdminPermissions(),)
 
-    
+
+class ReviewViewSet(viewsets.ModelViewSet):
+    queryset = Review.objects.all()
+    serializer_class = ReviewSerializer
+    permission_classes = (IsAuthenticatedOrReadOnly,)
+
+    def perform_create(self, serializer):
+        serializer.save(
+            author=self.request.user,
+        )

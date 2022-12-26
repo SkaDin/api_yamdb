@@ -120,14 +120,7 @@ class TitleSerializer(ModelSerializer):
 
     class Meta:
         model = Title
-        fields = (
-            'id',
-            'name',
-            'year',
-            'description',
-            'genre',
-            'category'
-        )
+        fields = '__all__'
 
 
 class ReviewSerializer(ModelSerializer):

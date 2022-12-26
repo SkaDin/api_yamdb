@@ -37,7 +37,7 @@ from api.permissions import (
 )
 from django_filters.rest_framework import DjangoFilterBackend
 from reviews.models import Category, Genre, Title, Review
-
+from django.db.models import Avg
 
 User = get_user_model()
 
@@ -112,11 +112,6 @@ class CategoryViewSet(CategoryGenreViewSet):
     lookup_field = 'slug'
     permission_classes = (AdminOrReadOnly,)
 
-#    def get_permissions(self):
-#        if self.action == 'list':
-#            return (AllowAny(),)
-#        return (AdminPermissions(),)
-
 
 class GenreViewSet(CategoryGenreViewSet):
     queryset = Genre.objects.all().order_by('-id')
@@ -126,14 +121,9 @@ class GenreViewSet(CategoryGenreViewSet):
     lookup_field = 'slug'
     permission_classes = (AdminOrReadOnly,)
 
-#    def get_permissions(self):
-#        if self.action == 'list':
-#            return (AllowAny(),)
-#        return (AdminPermissions(),)
-
 
 class TitleViewSet(ModelViewSet):
-    queryset = Title.objects.all().order_by('-id')
+    queryset = Title.objects.all()
     serializer_class = TitleSerializer
     filter_backends = (DjangoFilterBackend, SearchFilter)
     search_fields = ('name', 'year', 'genre__slug', 'category__slug')

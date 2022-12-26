@@ -1,4 +1,3 @@
-from .permissions import AdminPermissions
 from rest_framework import viewsets, mixins, status
 from rest_framework.permissions import AllowAny
 from django.contrib.auth import get_user_model
@@ -39,7 +38,7 @@ from api.permissions import (
 )
 from django_filters.rest_framework import DjangoFilterBackend
 from reviews.models import Category, Genre, Title, Review
-from django.db.models import Avg
+
 
 User = get_user_model()
 

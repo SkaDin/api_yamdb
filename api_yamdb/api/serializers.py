@@ -4,7 +4,7 @@ from rest_framework.serializers import ModelSerializer
 from rest_framework.validators import UniqueTogetherValidator
 from rest_framework.authtoken.models import Token
 import re
-from django.db.models import Avg
+
 from reviews.models import Genre, Category, Title, Review
 
 User = get_user_model()

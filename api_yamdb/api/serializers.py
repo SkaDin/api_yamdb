@@ -5,7 +5,8 @@ from rest_framework.validators import UniqueTogetherValidator
 from rest_framework.authtoken.models import Token
 import re
 
-from reviews.models import Genre, Category, Title, Review
+from reviews.models import Genre, Category, Title, Reviews
+
 
 User = get_user_model()
 
@@ -138,7 +139,7 @@ class ReviewSerializer(ModelSerializer):
     )
 
     class Meta:
-        model = Review
+        model = Reviews
         fields = (
             'id',
             'text',

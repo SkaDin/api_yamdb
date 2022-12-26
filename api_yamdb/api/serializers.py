@@ -3,9 +3,9 @@ from rest_framework import serializers
 from rest_framework.serializers import ModelSerializer
 from rest_framework.validators import UniqueTogetherValidator
 from rest_framework.authtoken.models import Token
-import re 
+import re
 
-from reviews.models import Genre, Category, Title
+from reviews.models import Genre, Category, Title, Review
 
 User = get_user_model()
 
@@ -117,6 +117,34 @@ class TitleSerializer(ModelSerializer):
         slug_field='slug',
         many=True
     )
+
     class Meta:
         model = Title
-        fields = '__all__'
+        fields = (
+            'id',
+            'name',
+            'year',
+            'description',
+            'genre',
+            'category'
+        )
+
+
+class ReviewSerializer(ModelSerializer):
+    author = serializers.SlugRelatedField(
+        slug_field='username', read_only=True
+    )
+
+    class Meta:
+        model = Review
+        fields = (
+            'id',
+            'text',
+            'author',
+            'score'
+            'pub_date',
+            'title'
+        )
+        extra_kwargs = {
+            'title': {'write_only': True}
+        }

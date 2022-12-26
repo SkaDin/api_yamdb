@@ -7,7 +7,6 @@ from django.shortcuts import get_object_or_404
 from .serializers import RegisterSerializer, TokenObtainPairSerializer, \
     UserSerializer
 from rest_framework.viewsets import ModelViewSet, GenericViewSet
-from reviews.models import Category, Genre, Title
 from rest_framework_simplejwt.tokens import RefreshToken
 from api.serializers import (
     CategorySerializer,
@@ -22,6 +21,12 @@ from rest_framework.mixins import (
     DestroyModelMixin
 )
 
+from api.serializers import (
+    CategorySerializer,
+    GenreSerializer,
+    TitleSerializer,
+    ReviewSerializer
+)
 from api.permissions import (
     IsAuthenticatedOrReadOnly,
     UserPermissions,
@@ -31,6 +36,7 @@ from api.permissions import (
     AdminOrReadOnly,
 )
 from django_filters.rest_framework import DjangoFilterBackend
+from reviews.models import Category, Genre, Title, Review
 
 
 User = get_user_model()
@@ -54,7 +60,7 @@ class ListViewSet(mixins.ListModelMixin,
 class UserViewSet(ModelViewSet):
     queryset = User.objects.all()
     serializer_class = UserSerializer
-    permission_classes = (AdminPermissions,) # Todo Set Permission to IsAuthenticated
+    permission_classes = (AdminPermissions,)  # Todo Set Permission to IsAuthenticated
     pagination_class = PageNumberPagination
 
 
@@ -97,6 +103,7 @@ class CategoryGenreViewSet(
 ):
     pass
 
+
 class CategoryViewSet(CategoryGenreViewSet):
     queryset = Category.objects.all().order_by('-id')
     serializer_class = CategorySerializer
@@ -128,11 +135,21 @@ class GenreViewSet(CategoryGenreViewSet):
 class TitleViewSet(ModelViewSet):
     queryset = Title.objects.all().order_by('-id')
     serializer_class = TitleSerializer
-    filter_backends = (DjangoFilterBackend ,SearchFilter)
+    filter_backends = (DjangoFilterBackend, SearchFilter)
     search_fields = ('name', 'year', 'genre__slug', 'category__slug')
+
     def get_permissions(self):
         if self.action == 'list' or self.action == 'retrieve':
             return (AllowAny(),)
         return (AdminPermissions(),)
 
-    
+
+class ReviewViewSet(viewsets.ModelViewSet):
+    queryset = Review.objects.all()
+    serializer_class = ReviewSerializer
+    permission_classes = (IsAuthenticatedOrReadOnly,)
+
+    def perform_create(self, serializer):
+        serializer.save(
+            author=self.request.user,
+        )

@@ -24,7 +24,10 @@ from api.permissions import (
     UserPermissions,
     ModeratorPermissions,
     AdminPermissions,
+    IsAdminUser,
+    AdminOrReadOnly,
 )
+from django_filters.rest_framework import DjangoFilterBackend
 from reviews.models import Category, Genre, Title, Review
 
 
@@ -39,6 +42,11 @@ class ReviewViewSet(viewsets.ModelViewSet):
     queryset = Review.objects.all()
     serializer_class = ReviewSerializer
     permission_classes = (IsAuthenticatedOrReadOnly,)
+
+    def perform_create(self, serializer):
+        serializer.save(
+            author=self.request.user,
+        )
 
 
 class RegisterViewSet(CreateOnlyViewSet):
@@ -80,20 +88,43 @@ class CategoryGenreViewSet(
 ):
     pass
 
+
 class CategoryViewSet(CategoryGenreViewSet):
-    queryset = Category.objects.all()
+    queryset = Category.objects.all().order_by('-id')
     serializer_class = CategorySerializer
-    #filter_backends = (SearchFilter,)
-    #search_fields = ('name')
-    
+    filter_backends = (SearchFilter,)
+    search_fields = ('name',)
+    lookup_field = 'slug'
+    permission_classes = (AdminOrReadOnly,)
+
+#    def get_permissions(self):
+#        if self.action == 'list':
+#            return (AllowAny(),)
+#        return (AdminPermissions(),)
+
 
 class GenreViewSet(CategoryGenreViewSet):
-    queryset = Genre.objects.all()
+    queryset = Genre.objects.all().order_by('-id')
     serializer_class = GenreSerializer
-    #filter_backends = (SearchFilter,)
-    #search_fields = ('name')
-    
+    filter_backends = (SearchFilter,)
+    search_fields = ('name',)
+    lookup_field = 'slug'
+    permission_classes = (AdminOrReadOnly,)
+
+#    def get_permissions(self):
+#        if self.action == 'list':
+#            return (AllowAny(),)
+#        return (AdminPermissions(),)
+
 
 class TitleViewSet(ModelViewSet):
-    queryset = Title.objects.all()
+    queryset = Title.objects.all().order_by('-id')
     serializer_class = TitleSerializer
+    filter_backends = (DjangoFilterBackend ,SearchFilter)
+    search_fields = ('name', 'year', 'genre__slug', 'category__slug')
+    def get_permissions(self):
+        if self.action == 'list' or self.action == 'retrieve':
+            return (AllowAny(),)
+        return (AdminPermissions(),)
+
+    

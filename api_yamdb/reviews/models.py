@@ -10,7 +10,8 @@ class CategoryGenreBase(models.Model):
     slug = models.SlugField(
         'Слаг',
         max_length=50,
-        unique=True
+        unique=True,
+        db_index=True
     )
 
     def __str__(self):
@@ -18,25 +19,6 @@ class CategoryGenreBase(models.Model):
 
     class Meta:
         abstract = True
-
-
-class Review(models.Model):
-    text = models.CharField(
-        max_length=400, verbose_name='Текст комментария:',
-        help_text='Опишите свои впечатления:'
-    )
-    author = models.ForeignKey(
-        User,
-        related_name='reviews',
-        on_delete=models.CASCADE,
-    )
-    pub_date = models.DateTimeField(
-        'Дата публикации:', auto_now_add=True
-    )
-    score = models.IntegerField(
-        default=None,
-        choices=[(x, inflect.engine().number_to_words(x)) for x in range(1, 11)]
-    )
 
 
 class Category(CategoryGenreBase):
@@ -73,3 +55,27 @@ class Title(models.Model):
 
     def __str__(self):
         return self.name
+
+
+class Review(models.Model):
+    text = models.CharField(
+        max_length=400, verbose_name='Текст комментария:',
+        help_text='Опишите свои впечатления:'
+    )
+    author = models.ForeignKey(
+        User,
+        related_name='reviews',
+        on_delete=models.CASCADE,
+    )
+    pub_date = models.DateTimeField(
+        'Дата публикации:', auto_now_add=True
+    )
+    score = models.IntegerField(
+        default=None,
+        choices=[(x, inflect.engine().number_to_words(x)) for x in range(1, 11)]
+    )
+    title = models.ForeignKey(
+        Title, related_name='titles',
+        on_delete=models.CASCADE,
+        verbose_name='Произведения:'
+    )

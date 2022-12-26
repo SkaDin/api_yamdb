@@ -38,8 +38,9 @@ from api.permissions import (
     AdminOrReadOnly,
 )
 from django_filters.rest_framework import DjangoFilterBackend
-from reviews.models import Category, Genre, Title, Review
+from reviews.models import Category, Genre, Title, Reviews
 from django.db.models import Avg
+
 
 User = get_user_model()
 
@@ -141,10 +142,15 @@ class TitleViewSet(ModelViewSet):
             return TitleCreateSerializer
         return TitleSerializer
 
-class ReviewViewSet(viewsets.ModelViewSet):
-    queryset = Review.objects.all()
+
+class ReviewsViewSet(viewsets.ModelViewSet):
     serializer_class = ReviewSerializer
-    permission_classes = (IsAuthenticatedOrReadOnly,)
+    permission_classes = (IsAuthenticatedOrReadOnly, UserPermissions)
+
+    def get_queryset(self):
+        return get_object_or_404(
+            Title, id=self.kwargs.get('title_id')
+        ).reviews.all()
 
     def perform_create(self, serializer):
         serializer.save(

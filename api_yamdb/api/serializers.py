@@ -1,57 +1,50 @@
+from django.conf import settings
 from django.contrib.auth import get_user_model
+from django.contrib.auth.validators import UnicodeUsernameValidator
+from django.shortcuts import get_object_or_404
 from rest_framework import serializers
-from rest_framework.serializers import ModelSerializer
-from rest_framework.validators import UniqueTogetherValidator
 from rest_framework.authtoken.models import Token
-import re
-
-from reviews.models import Genre, Category, Title, Reviews
+from reviews.models import Category, Genre, Review, Title
 
 
 User = get_user_model()
 
 
-class UsernameValidator:
-    requires_context = True
-    format_message = 'Username format is invalid.'
-    length_message = 'Username is too long.'
-    LENGTH = 150
-
-    def __init__(self, queryset, fields):
-        self.queryset = queryset
-
-    def __call__(self, attrs, serializer):
-        pattern = re.compile('(?=(^(?!me$)))(?=(^[\w.@+-]+\Z))')
-        username = attrs.get('username')
-        if self.queryset.filter(username=username).exists():
-            raise serializers.ValidationError(
-                "Username %s already exists" % username)
-        if not re.match(pattern, username):
-            raise serializers.ValidationError(self.format_message)
-        if len(username) > self.LENGTH:
-            raise serializers.ValidationError(self.length_message)
-
-
-class EmailValidator:
-    requires_context = True
-    message = 'Email format is invalid'
-    LENGTH = 254
-
-    def __init__(self, queryset, fields, ):
-        self.queryset = queryset
-
-    def __call__(self, attrs, serializer):
-        email = attrs.get('email')
-        # if self.queryset.filter(email=email).exists():
-        #     raise serializers.ValidationError("Email is not unique")
-        if len(attrs.get('email')) > self.LENGTH:
-            raise serializers.ValidationError(self.message)
-
-
-class UserSerializer(serializers.ModelSerializer):
-    """User model serializer."""
+class UserBaseSerializer(serializers.ModelSerializer):
+    """User model base serializer."""
+    username = serializers.CharField(
+        max_length=settings.USERNAME_MAX_LENGTH, validators=[
+            UnicodeUsernameValidator(), ])
+    email = serializers.EmailField(max_length=settings.EMAIL_MAX_LENGTH)
 
     class Meta:
+        model = User
+
+    def create(self, validated_data):
+        user = None
+        try:
+            user = User.objects.get(**validated_data)
+        except User.DoesNotExist:
+            if User.objects.filter(
+                    username=validated_data.get(
+                        'username')).exists():
+                raise serializers.ValidationError(
+                    'User with such Username exists.',
+                )
+            if User.objects.filter(
+                    email=validated_data.get('email')).exists():
+                raise serializers.ValidationError(
+                    'User with such Email exists',
+                )
+        if not user:
+            user = User.objects.create(**validated_data)
+        return user
+
+
+class UserSerializer(UserBaseSerializer):
+    """User model serializer."""
+
+    class Meta(UserBaseSerializer.Meta):
         fields = (
             'username',
             'email',
@@ -59,32 +52,19 @@ class UserSerializer(serializers.ModelSerializer):
             'last_name',
             'bio',
             'role')
-        model = User
 
 
-class RegisterSerializer(serializers.ModelSerializer):
+class RegisterSerializer(UserBaseSerializer):
     """Registration serializer"""
-    email = serializers.EmailField(required=True)
-    username = serializers.CharField(required=True)
 
-    class Meta:
-        model = User
+    class Meta(UserBaseSerializer.Meta):
         fields = ('username', 'email',)
-        validators = [
-            UsernameValidator(
-                queryset=model.objects.all(),
-                fields=['username', ],
-            ),
-            EmailValidator(
-                queryset=model.objects.all(),
-                fields=['email', ]
-            )
-        ]
 
-    def create(self, validated_data):
-        instance, _ = User.objects.get_or_create(
-            **validated_data)
-        return instance
+    def validate_username(self, username):
+        if username == 'me':
+            raise serializers.ValidationError(
+                'Username "me" is not allowed.')
+        return username
 
 
 class TokenObtainPairSerializer(serializers.ModelSerializer):
@@ -95,14 +75,24 @@ class TokenObtainPairSerializer(serializers.ModelSerializer):
         fields = ('username', 'confirmation_code')
         model = Token
 
+    def validate(self, attrs):
+        user = get_object_or_404(User,
+                                 username=attrs.get(
+                                     'username'))
+        if not (user.auth_token.key == attrs.get(
+                'confirmation_code')):
+            raise serializers.ValidationError(
+                'Confirmation code is invalid.')
+        return user
 
-class GenreSerializer(ModelSerializer):
+
+class GenreSerializer(serializers.ModelSerializer):
     class Meta:
         exclude = ('id',)
         model = Genre
 
 
-class CategorySerializer(ModelSerializer):
+class CategorySerializer(serializers.ModelSerializer):
     class Meta:
         exclude = ('id',)
         model = Category
@@ -122,6 +112,7 @@ class TitleCreateSerializer(serializers.ModelSerializer):
             'id', 'name', 'year', 'description', 'genre', 'category'
         )
 
+
 class TitleSerializer(serializers.ModelSerializer):
     category = CategorySerializer()
     genre = GenreSerializer(many=True)
@@ -133,7 +124,7 @@ class TitleSerializer(serializers.ModelSerializer):
         )
 
 
-class ReviewSerializer(ModelSerializer):
+class ReviewSerializer(serializers.ModelSerializer):
     author = serializers.SlugRelatedField(
         slug_field='username', read_only=True
     )
@@ -151,4 +142,3 @@ class ReviewSerializer(ModelSerializer):
         extra_kwargs = {
             'title': {'write_only': True}
         }
-    

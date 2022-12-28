@@ -1,5 +1,8 @@
 from django.contrib.auth import get_user_model
-from rest_framework.permissions import SAFE_METHODS, BasePermission, AllowAny, IsAdminUser
+from rest_framework.permissions import (SAFE_METHODS,
+                                        AllowAny,
+                                        BasePermission,
+                                        IsAdminUser)
 
 User = get_user_model()
 
@@ -15,28 +18,19 @@ class UserPermissions(IsAuthenticatedOrReadOnly):
         return (super().has_permission(request, view)
                 and request.user.is_user)
 
-    def has_permission_object(self, request, view, obj):
-        ...
-
 
 class ModeratorPermissions(IsAuthenticatedOrReadOnly):
     def has_permission(self, request, view):
         return (super().has_permission(request, view)
                 and request.user.is_moderator)
 
-    def has_permission_object(self, request, view, obj):
-        ...
-
 
 class AdminPermissions(BasePermission):
     def has_permission(self, request, view):
         return (
-            request.user.is_authenticated
-            and request.user.is_admin
+                request.user.is_authenticated
+                and request.user.is_admin
         )
-
-    def has_permission_object(self, request, view, obj):
-        ...
 
 
 class AdminOrReadOnly(BasePermission):
@@ -52,3 +46,21 @@ class AdminOrReadOnly(BasePermission):
         if request.method in SAFE_METHODS:
             return True
         return request.user.is_admin
+
+
+class IsAdminOrIsSelf(BasePermission):
+    def has_permission(self, request, view):
+        return request.user.is_authenticated
+
+    def has_permission_object(self, request, view, obj):
+        is_self = (request.user == obj)
+        return request.method in SAFE_METHODS and (
+                is_self or request.user.is_admin)
+
+
+class AdminOrSuperUserPermissions(BasePermission):
+    def has_permission(self, request, view):
+        return (
+                request.user.is_authenticated
+                and (request.user.is_admin or request.user.is_superuser)
+        )

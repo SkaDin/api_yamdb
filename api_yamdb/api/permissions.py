@@ -64,7 +64,7 @@ class ReviewPermission(IsAuthenticatedOrReadOnly):
             or request.method == 'POST' and request.user.is_authenticated
             or request.user.is_admin
             or request.user.is_moderator
-
+        )
 
 class IsAdminOrIsSelf(BasePermission):
     def has_permission(self, request, view):

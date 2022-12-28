@@ -13,9 +13,9 @@ from django.contrib.auth import get_user_model
 from django.db.models import Avg
 from django.shortcuts import get_object_or_404
 from .serializers import CommentSerializer, RegisterSerializer, \
-    TokenObtainPairSerializer, \
+    TokenObtainPairSerializer \
 
-from .serializers import(
+from .serializers import (
     RegisterSerializer,
     TokenObtainPairSerializer,
     UserSerializer
@@ -70,7 +70,6 @@ from reviews.models import Category, Genre, Reviews, Title
 from reviews.models import Category, Genre, Title
 
 User = get_user_model()
-=======
 
 from .filters import TitleFilter
 
@@ -80,6 +79,7 @@ User = get_user_model()
 class ListViewSet(mixins.ListModelMixin,
                   viewsets.GenericViewSet):
     pass
+
 
 class CategoryGenreViewSet(
     CreateModelMixin,

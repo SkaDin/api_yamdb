@@ -160,10 +160,14 @@ class TitleViewSet(ModelViewSet):
         return TitleSerializer
 
 
-class ReviewViewSet(viewsets.ModelViewSet):
-    queryset = Review.objects.all()
+class ReviewsViewSet(viewsets.ModelViewSet):
     serializer_class = ReviewSerializer
-    permission_classes = (IsAuthenticatedOrReadOnly,)
+    permission_classes = (IsAuthenticatedOrReadOnly, UserPermissions)
+
+    def get_queryset(self):
+        return get_object_or_404(
+            Title, id=self.kwargs.get('title_id')
+        ).reviews.all()
 
     def perform_create(self, serializer):
         serializer.save(

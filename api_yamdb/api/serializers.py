@@ -6,6 +6,7 @@ from rest_framework import serializers
 from rest_framework.authtoken.models import Token
 from reviews.models import Category, Genre, Review, Title
 
+
 User = get_user_model()
 
 
@@ -129,7 +130,7 @@ class ReviewSerializer(serializers.ModelSerializer):
     )
 
     class Meta:
-        model = Review
+        model = Reviews
         fields = (
             'id',
             'text',

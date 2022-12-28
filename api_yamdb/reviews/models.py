@@ -57,7 +57,7 @@ class Title(models.Model):
         return self.name
 
 
-class Review(models.Model):
+class Reviews(models.Model):
     text = models.CharField(
         max_length=400, verbose_name='Текст комментария:',
         help_text='Опишите свои впечатления:'
@@ -78,7 +78,26 @@ class Review(models.Model):
             ) for x in range(1, 11)]
     )
     title = models.ForeignKey(
-        Title, related_name='titles',
+        Title, related_name='reviews',
         on_delete=models.CASCADE,
         verbose_name='Произведения:'
+    )
+
+
+class Comments(models.Model):
+    text = models.CharField(verbose_name='Текст отзыва:', max_length=400)
+    author = models.ForeignKey(
+        User,
+        related_name='comments',
+        verbose_name='Автор отзыва:',
+        on_delete=models.CASCADE
+    )
+    pub_date = models.DateTimeField(
+        'Дата публикации:',
+        auto_now_add=True,
+    )
+    review = models.ForeignKey(
+        Reviews,
+        related_name='comments',
+        on_delete=models.CASCADE
     )

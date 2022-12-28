@@ -1,7 +1,6 @@
 from django.db import models
 from .validators import validator_year
 import inflect
-
 from users.models import User
 
 
@@ -75,7 +74,8 @@ class Reviews(models.Model):
         choices=[
             (
                 x, inflect.engine().number_to_words(x)
-            ) for x in range(1, 11)]
+            ) for x in range(1, 11)
+        ]
     )
     title = models.ForeignKey(
         Title, related_name='reviews',

@@ -1,11 +1,11 @@
 from django.contrib.auth import get_user_model
 from rest_framework import serializers
 from rest_framework.serializers import ModelSerializer
-from rest_framework.validators import UniqueTogetherValidator
 from rest_framework.authtoken.models import Token
 import re
-from django.db.models import Avg
+
 from reviews.models import Genre, Category, Title, Reviews, Comments
+
 
 User = get_user_model()
 
@@ -151,6 +151,14 @@ class ReviewSerializer(ModelSerializer):
             'title': {'write_only': True}
         }
 
+    # def validate(self, data):
+    #     request = self.context['request']
+    #     author = request.user
+    #     title_id = self.context['view'].kwargs.get('title_id')
+    #     if author.reviews.filter(title_id=title_id).exists():
+    #         raise serializers.ValidationError('Oshibka')
+    #     return data
+
 
 class CommentSerializer(ModelSerializer):
     author = serializers.SlugRelatedField(
@@ -163,7 +171,7 @@ class CommentSerializer(ModelSerializer):
             'id',
             'text',
             'author',
-            'pub_date'
+            'pub_date',
         )
         extra_kwargs = {
             'review': {'write_only': True}

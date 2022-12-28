@@ -3,6 +3,11 @@ from django.contrib.auth import get_user_model
 from django.contrib.auth.validators import UnicodeUsernameValidator
 from django.shortcuts import get_object_or_404
 from rest_framework import serializers
+from rest_framework.serializers import ModelSerializer
+from rest_framework.authtoken.models import Token
+import re
+
+from reviews.models import Genre, Category, Title, Reviews, Comments
 from rest_framework.authtoken.models import Token
 from reviews.models import Category, Genre, Reviews, Title
 
@@ -137,25 +142,25 @@ class ReviewSerializer(serializers.ModelSerializer):
             'author',
             'score',
             'pub_date',
-            'title'
         )
         extra_kwargs = {
             'title': {'write_only': True}
         }
 
-class ReviewSerializer(serializers.ModelSerializer):
+
+class CommentSerializer(ModelSerializer):
     author = serializers.SlugRelatedField(
-        default=serializers.CurrentUserDefault(),
-        read_only=True,
-        slug_field='username'
+        slug_field='username', read_only=True
     )
 
     class Meta:
-        fields = ('id', 'text', 'author', 'score', 'pub_date', 'title')
-        model = Reviews
-        validators = [
-            serializers.UniqueTogetherValidator(
-                queryset=Reviews.objects.all(),
-                fields=('author', 'title')
-            )
-        ]
+        model = Comments
+        fields = (
+            'id',
+            'text',
+            'author',
+            'pub_date',
+        )
+        extra_kwargs = {
+            'review': {'write_only': True}
+        }

@@ -10,7 +10,8 @@ User = get_user_model()
 class IsAuthenticatedOrReadOnly(BasePermission):
     def has_permission(self, request, view):
         return (request.user.is_authenticated
-                or request.method in SAFE_METHODS)
+                or request.method in SAFE_METHODS
+        )
 
 
 class UserPermissions(IsAuthenticatedOrReadOnly):
@@ -47,6 +48,23 @@ class AdminOrReadOnly(BasePermission):
             return True
         return request.user.is_admin
 
+
+
+class ReviewPermission(IsAuthenticatedOrReadOnly):
+    def has_permission(self, request, view):
+        return (
+            request.method in SAFE_METHODS
+            or request.user.is_authenticated
+        )
+
+    def has_object_permission(self, request, view, obj):
+        return (
+            request.method in SAFE_METHODS
+            or request.user == obj.author
+            or request.method == 'POST' and request.user.is_authenticated
+            or request.user.is_admin
+            or request.user.is_moderator
+        )
 
 class IsAdminOrIsSelf(BasePermission):
     def has_permission(self, request, view):

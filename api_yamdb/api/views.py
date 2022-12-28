@@ -4,7 +4,7 @@ from rest_framework.permissions import AllowAny
 from django.contrib.auth import get_user_model
 from rest_framework.response import Response
 from django.shortcuts import get_object_or_404
-from .serializers import RegisterSerializer, TokenObtainPairSerializer, \
+from .serializers import CommentSerializer, RegisterSerializer, TokenObtainPairSerializer, \
     UserSerializer
 from rest_framework.viewsets import ModelViewSet, GenericViewSet
 from rest_framework_simplejwt.tokens import RefreshToken
@@ -27,7 +27,7 @@ from api.serializers import (
     GenreSerializer,
     TitleSerializer,
     ReviewSerializer,
-    TitleCreateSerializer
+    TitleCreateSerializer,
 )
 from api.permissions import (
     IsAuthenticatedOrReadOnly,
@@ -130,7 +130,7 @@ class TitleViewSet(ModelViewSet):
     serializer_class = TitleSerializer
     filter_backends = (DjangoFilterBackend,)
     filterset_class = TitleFilter
-    #search_fields = ('name', 'year', 'genre__slug', 'category__slug')
+    # search_fields = ('name', 'year', 'genre__slug', 'category__slug')
 
     def get_permissions(self):
         if self.action == 'list' or self.action == 'retrieve':
@@ -155,4 +155,21 @@ class ReviewsViewSet(viewsets.ModelViewSet):
     def perform_create(self, serializer):
         serializer.save(
             author=self.request.user,
+        )
+
+
+class CommentsViewSet(viewsets.ModelViewSet):
+    serializer_class = CommentSerializer
+    permission_classes = (IsAuthenticatedOrReadOnly,)
+
+    def get_queryset(self):
+        return get_object_or_404(
+            Title, id=self.kwargs.get('title_id')
+        ).reviews.filter(
+            id=self.kwargs.get('review_id')
+        ).comments.all()
+
+    def perform_create(self, serializer):
+        return serializer.save(
+            author=self.request.user
         )

@@ -151,4 +151,20 @@ class ReviewSerializer(ModelSerializer):
         extra_kwargs = {
             'title': {'write_only': True}
         }
-    
+
+class ReviewSerializer(serializers.ModelSerializer):
+    author = serializers.SlugRelatedField(
+        default=serializers.CurrentUserDefault(),
+        read_only=True,
+        slug_field='username'
+    )
+
+    class Meta:
+        fields = ('id', 'text', 'author', 'score', 'pub_date', 'title')
+        model = Reviews
+        validators = [
+            UniqueTogetherValidator(
+                queryset=Reviews.objects.all(),
+                fields=('author', 'title')
+            )
+        ]

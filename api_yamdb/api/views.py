@@ -3,8 +3,11 @@ from rest_framework.permissions import AllowAny
 from django.contrib.auth import get_user_model
 from rest_framework.response import Response
 from django.shortcuts import get_object_or_404
-from .serializers import RegisterSerializer, TokenObtainPairSerializer, \
+from .serializers import(
+    RegisterSerializer,
+    TokenObtainPairSerializer,
     UserSerializer
+)
 from rest_framework.viewsets import ModelViewSet, GenericViewSet
 from rest_framework_simplejwt.tokens import RefreshToken
 from api.serializers import (
@@ -26,7 +29,7 @@ from api.serializers import (
     GenreSerializer,
     TitleSerializer,
     ReviewSerializer,
-    TitleCreateSerializer
+    TitleCreateSerializer,
 )
 from api.permissions import (
     IsAuthenticatedOrReadOnly,
@@ -38,11 +41,23 @@ from api.permissions import (
 )
 from django_filters.rest_framework import DjangoFilterBackend
 
-from reviews.models import Category, Genre, Title, Reviews
-
+from reviews.models import Category, Genre, Title
 
 
 User = get_user_model()
+
+
+class ListViewSet(mixins.ListModelMixin,
+                  viewsets.GenericViewSet):
+    pass
+
+class CategoryGenreViewSet(
+    CreateModelMixin,
+    ListModelMixin,
+    DestroyModelMixin,
+    GenericViewSet
+):
+    pass
 
 
 class CreateViewSet(mixins.CreateModelMixin, viewsets.GenericViewSet):
@@ -53,11 +68,6 @@ class CreateViewSet(mixins.CreateModelMixin, viewsets.GenericViewSet):
         headers = self.get_success_headers(serializer.data)
         return Response(serializer.data, status=status.HTTP_200_OK,
                         headers=headers)
-
-
-class ListViewSet(mixins.ListModelMixin,
-                  viewsets.GenericViewSet):
-    pass
 
 
 class UserViewSet(ModelViewSet):
@@ -98,15 +108,6 @@ class TokenObtainPairView(CreateViewSet):
         return Response(data, status=status.HTTP_201_CREATED)
 
 
-class CategoryGenreViewSet(
-    CreateModelMixin,
-    ListModelMixin,
-    DestroyModelMixin,
-    GenericViewSet
-):
-    pass
-
-
 class CategoryViewSet(CategoryGenreViewSet):
     queryset = Category.objects.all().order_by('-id')
     serializer_class = CategorySerializer
@@ -130,7 +131,6 @@ class TitleViewSet(ModelViewSet):
     serializer_class = TitleSerializer
     filter_backends = (DjangoFilterBackend,)
     filterset_class = TitleFilter
-    #search_fields = ('name', 'year', 'genre__slug', 'category__slug')
 
     def get_permissions(self):
         if self.action == 'list' or self.action == 'retrieve':
@@ -141,7 +141,7 @@ class TitleViewSet(ModelViewSet):
         if self.request.method in ('POST', 'PATCH',):
             return TitleCreateSerializer
         return TitleSerializer
-
+    
 
 class ReviewsViewSet(viewsets.ModelViewSet):
     serializer_class = ReviewSerializer

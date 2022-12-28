@@ -99,5 +99,5 @@ class Comments(models.Model):
     review = models.ForeignKey(
         Reviews,
         related_name='comments',
-        on_delete=models.CASCADE
+        on_delete=models.CASCADE,
     )

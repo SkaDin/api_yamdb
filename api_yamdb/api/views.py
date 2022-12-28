@@ -82,7 +82,7 @@ class ListViewSet(mixins.ListModelMixin, viewsets.GenericViewSet):
 
 class UserViewSet(ModelViewSet):
     """View set of users."""
-    queryset = User.objects.all()
+    queryset = User.objects.all().order_by('-id')
     serializer_class = UserSerializer
     pagination_class = PageNumberPagination
     filter_backends = (DjangoFilterBackend, filters.SearchFilter)

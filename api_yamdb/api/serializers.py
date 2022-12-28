@@ -5,11 +5,9 @@ from django.shortcuts import get_object_or_404
 from rest_framework import serializers
 from rest_framework.serializers import ModelSerializer
 from rest_framework.authtoken.models import Token
-import re
-
 from reviews.models import Genre, Category, Title, Reviews, Comments
-from rest_framework.authtoken.models import Token
-from reviews.models import Category, Genre, Reviews, Title
+from django.forms import ValidationError
+
 
 
 User = get_user_model()
@@ -133,7 +131,17 @@ class ReviewSerializer(serializers.ModelSerializer):
     author = serializers.SlugRelatedField(
         slug_field='username', read_only=True
     )
-
+    def validate(self, data):
+        request = self.context['request']
+        title_id = self.context['view'].kwargs.get('title_id')
+        title = get_object_or_404(Title, pk=title_id)
+        if request.method == 'POST':
+            if Reviews.objects.filter(
+                    title=title,
+                    author=request.user).exists():
+                raise ValidationError(
+                    'Допустимо не более 1 отзыва на произведение')
+        return data
     class Meta:
         model = Reviews
         fields = (
@@ -146,7 +154,6 @@ class ReviewSerializer(serializers.ModelSerializer):
         extra_kwargs = {
             'title': {'write_only': True}
         }
-
 
 class CommentSerializer(ModelSerializer):
     author = serializers.SlugRelatedField(

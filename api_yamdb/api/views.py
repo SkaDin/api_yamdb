@@ -3,29 +3,20 @@ from api.permissions import (AdminOrReadOnly, AdminOrSuperUserPermissions,
                              IsAdminUser,
                              IsAuthenticatedOrReadOnly,
                              ModeratorPermissions,
-                             UserPermissions)
+                             UserPermissions,
+                             ReviewPermission,)
 from api.serializers import (CategorySerializer, GenreSerializer,
                              RegisterSerializer, ReviewSerializer,
                              TitleCreateSerializer, TitleSerializer,
                              TokenObtainPairSerializer, UserSerializer)
 from django.conf import settings
 from django.contrib.auth import get_user_model
-from django.db.models import Avg
 from django.shortcuts import get_object_or_404
-from .serializers import CommentSerializer, RegisterSerializer, \
-    TokenObtainPairSerializer \
-
 from .serializers import (
+    CommentSerializer,
     RegisterSerializer,
     TokenObtainPairSerializer,
     UserSerializer
-)
-from rest_framework.viewsets import ModelViewSet, GenericViewSet
-from rest_framework_simplejwt.tokens import RefreshToken
-from api.serializers import (
-    CategorySerializer,
-    GenreSerializer,
-    TitleSerializer,
 )
 from .filters import TitleFilter
 from rest_framework.pagination import PageNumberPagination
@@ -35,45 +26,21 @@ from rest_framework.mixins import (
     ListModelMixin,
     DestroyModelMixin
 )
-
-from api.serializers import (
-    CategorySerializer,
-    GenreSerializer,
-    TitleSerializer,
-    ReviewSerializer,
-    TitleCreateSerializer,
-)
-from api.permissions import (
-    ReviewPermission,
-    IsAuthenticatedOrReadOnly,
-    UserPermissions,
-    ModeratorPermissions,
-    AdminPermissions,
-    IsAdminUser,
-    AdminOrReadOnly,
-)
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import filters, mixins, status, viewsets
 from rest_framework.authtoken.models import Token
 from rest_framework.decorators import action
-from rest_framework.filters import SearchFilter
-from rest_framework.mixins import (CreateModelMixin, DestroyModelMixin,
-                                   ListModelMixin)
 from rest_framework.pagination import PageNumberPagination
 from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 from rest_framework.viewsets import GenericViewSet, ModelViewSet
 from rest_framework_simplejwt.tokens import RefreshToken
 from reviews.models import Category, Genre, Reviews, Title
-
-
-from reviews.models import Category, Genre, Title
-
-User = get_user_model()
-
 from .filters import TitleFilter
 
+
 User = get_user_model()
+
 
 
 class ListViewSet(mixins.ListModelMixin,
@@ -176,7 +143,7 @@ class TokenObtainPairView(CreateViewSet):
 class CategoryViewSet(CategoryGenreViewSet):
     queryset = Category.objects.all().order_by('-id')
     serializer_class = CategorySerializer
-    filter_backends = (SearchFilter,)
+    filter_backends = (DjangoFilterBackend ,SearchFilter)
     search_fields = ('name',)
     lookup_field = 'slug'
     permission_classes = (AdminOrReadOnly,)
@@ -185,7 +152,7 @@ class CategoryViewSet(CategoryGenreViewSet):
 class GenreViewSet(CategoryGenreViewSet):
     queryset = Genre.objects.all().order_by('-id')
     serializer_class = GenreSerializer
-    filter_backends = (SearchFilter,)
+    filter_backends = (DjangoFilterBackend ,SearchFilter)
     search_fields = ('name',)
     lookup_field = 'slug'
     permission_classes = (AdminOrReadOnly,)
@@ -194,9 +161,9 @@ class GenreViewSet(CategoryGenreViewSet):
 class TitleViewSet(ModelViewSet):
     queryset = Title.objects.all().order_by('-id')
     serializer_class = TitleSerializer
-    filter_backends = (DjangoFilterBackend,)
+    filter_backends = (DjangoFilterBackend, SearchFilter)
     filterset_class = TitleFilter
-    # search_fields = ('name', 'year', 'genre__slug', 'category__slug')
+
 
     def get_permissions(self):
         if self.action == 'list' or self.action == 'retrieve':
@@ -212,7 +179,6 @@ class TitleViewSet(ModelViewSet):
 class ReviewsViewSet(viewsets.ModelViewSet):
     serializer_class = ReviewSerializer
     permission_classes = (ReviewPermission,)
-
     def get_queryset(self):
         return get_object_or_404(
             Title, id=self.kwargs.get('title_id')
@@ -228,7 +194,6 @@ class ReviewsViewSet(viewsets.ModelViewSet):
 class CommentsViewSet(viewsets.ModelViewSet):
     serializer_class = CommentSerializer
     permission_classes = (ReviewPermission,)
-
     def get_queryset(self):
         return get_object_or_404(
             Reviews,

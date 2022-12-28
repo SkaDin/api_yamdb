@@ -1,6 +1,7 @@
 import os
 from datetime import timedelta
 from pathlib import Path
+
 from dotenv import load_dotenv
 
 load_dotenv()
@@ -24,6 +25,7 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'rest_framework.authtoken',
+    'django_filters',
     'api',
     'users',
     'reviews',
@@ -108,21 +110,23 @@ AUTH_USER_MODEL = 'users.User'
 
 REST_FRAMEWORK = {
     'DEFAULT_PERMISSION_CLASSES': [
-        'rest_framework.permissions.AllowAny', # Must be IsAuthenticated
+        'rest_framework.permissions.IsAuthenticated',
     ],
     'DEFAULT_AUTHENTICATION_CLASSES': [
         'rest_framework_simplejwt.authentication.JWTAuthentication',
     ],
-    'DEFAULT_PAGINATION_CLASS': 
+    'DEFAULT_PAGINATION_CLASS':
         'rest_framework.pagination.PageNumberPagination',
-        'PAGE_SIZE': 5,
+    'PAGE_SIZE': 10,
 }
 
 SIMPLE_JWT = {
-    'ACCESS_TOKEN_LIFETIME': timedelta(days=1),
+    'ACCESS_TOKEN_LIFETIME': timedelta(days=10),
     'AUTH_HEADER_TYPES': ('Bearer',),
 }
 
+USERNAME_MAX_LENGTH = 150
+EMAIL_MAX_LENGTH = 254
 USER_ROLES = {
     'ADMIN': 'admin',
     'MODERATOR': 'moderator',

@@ -1,8 +1,8 @@
-from django.db import models
-from .validators import validator_year
 import inflect
-
+from django.db import models
 from users.models import User
+
+from .validators import validator_year
 
 
 class CategoryGenreBase(models.Model):

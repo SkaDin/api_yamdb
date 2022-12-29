@@ -27,7 +27,6 @@ class User(AbstractUser):
     bio = models.TextField(blank=True, null=True)
     objects = CustomUserManager()
 
-
     @property
     def is_admin(self):
         return self.role == self.USER_ROLES.get('ADMIN', 'USER')

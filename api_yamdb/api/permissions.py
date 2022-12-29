@@ -64,7 +64,7 @@ class ReviewPermission(IsAuthenticatedOrReadOnly):
             )
             or request.user.is_admin
             or request.user.is_moderator
-    )
+        )
 
 
 class IsAdminOrIsSelf(BasePermission):
@@ -74,13 +74,13 @@ class IsAdminOrIsSelf(BasePermission):
     def has_permission_object(self, request, view, obj):
         is_self = (request.user == obj)
         return request.method in SAFE_METHODS and (
-                is_self or request.user.is_admin
-    )
+            is_self or request.user.is_admin
+        )
 
 
 class AdminOrSuperUserPermissions(BasePermission):
     def has_permission(self, request, view):
         return (
-                request.user.is_authenticated
-                and (request.user.is_admin or request.user.is_superuser)
-    )
+            request.user.is_authenticated
+            and (request.user.is_admin or request.user.is_superuser)
+        )

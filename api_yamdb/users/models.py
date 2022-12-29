@@ -24,10 +24,9 @@ class User(AbstractUser):
     role = models.CharField(choices=ROLE_CHOICES,
                             default=USER_ROLES.get('USER'), max_length=50)
     is_verified = models.BooleanField(default=False)
-
     bio = models.TextField(blank=True, null=True)
-
     objects = CustomUserManager()
+
 
     @property
     def is_admin(self):

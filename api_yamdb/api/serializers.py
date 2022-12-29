@@ -5,10 +5,8 @@ from django.shortcuts import get_object_or_404
 from rest_framework import serializers
 from rest_framework.serializers import ModelSerializer
 from rest_framework.authtoken.models import Token
-from reviews.models import Genre, Category, Title, Reviews, Comments
-from django.forms import ValidationError
 
-
+from reviews.models import Genre, Category, Title, Review, Comments
 
 User = get_user_model()
 
@@ -112,37 +110,46 @@ class TitleCreateSerializer(serializers.ModelSerializer):
     class Meta:
         model = Title
         fields = (
-            'id', 'name', 'year', 'description', 'genre', 'category'
+            'id',
+            'name',
+            'year',
+            'description',
+            'genre',
+            'category',
         )
 
 
 class TitleSerializer(serializers.ModelSerializer):
     category = CategorySerializer()
     genre = GenreSerializer(many=True)
+    rating = serializers.IntegerField(read_only=True)
 
     class Meta:
         model = Title
         fields = (
-            'id', 'name', 'year', 'description', 'genre', 'category'
+            'id',
+            'name',
+            'year',
+            'description',
+            'genre',
+            'category',
+            'rating',
         )
 
 
 class ReviewSerializer(serializers.ModelSerializer):
-    author = serializers.SlugRelatedField(
-        slug_field='username', read_only=True
-    )
+    author = serializers.StringRelatedField()
+
     class Meta:
-        model = Reviews
+        model = Review
         fields = (
-            'id',
             'text',
-            'author',
             'score',
+            'id',
+            'author',
             'pub_date',
         )
-        extra_kwargs = {
-            'title': {'write_only': True}
-        }
+
 
 class CommentSerializer(ModelSerializer):
     author = serializers.SlugRelatedField(

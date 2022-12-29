@@ -57,7 +57,7 @@ class Title(models.Model):
         return self.name
 
 
-class Reviews(models.Model):
+class Review(models.Model):
     text = models.CharField(
         max_length=400, verbose_name='Текст комментария:',
         help_text='Опишите свои впечатления:'
@@ -71,17 +71,26 @@ class Reviews(models.Model):
         'Дата публикации:', auto_now_add=True
     )
     score = models.IntegerField(
-        default=None,
         choices=[
             (
                 x, inflect.engine().number_to_words(x)
-            ) for x in range(1, 11)]
+            ) for x in range(1, 11)],
+        blank=False,
+        null=False,
     )
     title = models.ForeignKey(
         Title, related_name='reviews',
         on_delete=models.CASCADE,
         verbose_name='Произведения:'
     )
+
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(
+                fields=['author', 'title'],
+                name='Review from this author already exist.',
+            )
+        ]
 
 
 class Comments(models.Model):
@@ -97,7 +106,7 @@ class Comments(models.Model):
         auto_now_add=True,
     )
     review = models.ForeignKey(
-        Reviews,
+        Review,
         related_name='comments',
         on_delete=models.CASCADE,
     )

@@ -26,10 +26,12 @@ class Category(CategoryGenreBase):
         verbose_name = 'Категория'
         ordering = ('name',)
 
+
 class Genre(CategoryGenreBase):
     class Meta:
         verbose_name = 'Жанр'
-        ordering = ('name',)
+        ordering = ['name', ]
+
 
 class Title(models.Model):
     name = models.CharField('Наименование произведения', max_length=256)
@@ -92,7 +94,8 @@ class Review(models.Model):
                 name='Review from this author already exist.',
             )
         ]
-        ordering = ['-pub_date',]
+        ordering = ['-pub_date', ]
+
 
 class Comments(models.Model):
     text = models.CharField(verbose_name='Текст отзыва:', max_length=400)
@@ -112,5 +115,6 @@ class Comments(models.Model):
         related_name='comments',
         on_delete=models.CASCADE,
     )
+
     class Meta:
-        ordering = ['-pub_date',]
+        ordering = ['-pub_date', ]

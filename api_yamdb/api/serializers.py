@@ -20,25 +20,23 @@ class UserBaseSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = User
+        fields = ('username', 'email')
+
+    def validate(self, attrs):
+        if not User.objects.filter(**attrs).exists():
+            self.validate_attribute({'username': attrs.get('username')})
+            self.validate_attribute({'email': attrs.get('email')})
+        return attrs
+
+    def validate_attribute(self, attr):
+        if User.objects.filter(
+                **attr).exists():
+            raise serializers.ValidationError(
+                f'User with {attr} exists',
+            )
 
     def create(self, validated_data):
-        user = None
-        try:
-            user = User.objects.get(**validated_data)
-        except User.DoesNotExist:
-            if User.objects.filter(
-                    username=validated_data.get(
-                        'username')).exists():
-                raise serializers.ValidationError(
-                    'User with such Username exists.',
-                )
-            if User.objects.filter(
-                    email=validated_data.get('email')).exists():
-                raise serializers.ValidationError(
-                    'User with such Email exists',
-                )
-        if not user:
-            user = User.objects.create(**validated_data)
+        user, _ = User.objects.get_or_create(**validated_data)
         return user
 
 

@@ -40,4 +40,4 @@ class User(AbstractUser):
         return self.role == self.USER_ROLES.get('USER')
 
     class Meta:
-        ordering = ('username',)
+        ordering = ['username', ]

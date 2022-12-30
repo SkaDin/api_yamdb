@@ -24,7 +24,7 @@ from rest_framework import filters, mixins, status, viewsets
 from rest_framework.authtoken.models import Token
 from rest_framework.decorators import action
 from rest_framework.pagination import PageNumberPagination
-from rest_framework.permissions import AllowAny
+from rest_framework.permissions import AllowAny, SAFE_METHODS
 from rest_framework.response import Response
 from rest_framework.viewsets import GenericViewSet, ModelViewSet
 from rest_framework_simplejwt.tokens import RefreshToken
@@ -39,7 +39,7 @@ class ListViewSet(mixins.ListModelMixin,
     pass
 
 
-class CategoryGenreViewSet(
+class CreateListDestroyViewSet(
     CreateModelMixin,
     ListModelMixin,
     DestroyModelMixin,
@@ -55,7 +55,7 @@ class CreateViewSet(mixins.CreateModelMixin,
 
 class UserViewSet(ModelViewSet):
     """View set of users."""
-    queryset = User.objects.all().order_by('-id')
+    queryset = User.objects.all()
     serializer_class = UserSerializer
     pagination_class = PageNumberPagination
     filter_backends = (DjangoFilterBackend, filters.SearchFilter)
@@ -68,7 +68,7 @@ class UserViewSet(ModelViewSet):
 
     @action(detail=False, methods=['get', 'patch'],
             permission_classes=[IsAdminOrIsSelf, ])
-    def me(self, request, ):
+    def me(self, request):
         instance = request.user
         if self.request.method == 'GET':
             serializer = self.get_serializer(instance)
@@ -128,9 +128,9 @@ class TokenObtainPairView(CreateViewSet):
         }
 
 
-class CategoryViewSet(CategoryGenreViewSet):
+class CategoryViewSet(CreateListDestroyViewSet):
     """View set of categories."""
-    queryset = Category.objects.all().order_by('-id')
+    queryset = Category.objects.all()
     serializer_class = CategorySerializer
     filter_backends = (DjangoFilterBackend, SearchFilter)
     search_fields = ('name',)
@@ -138,9 +138,9 @@ class CategoryViewSet(CategoryGenreViewSet):
     permission_classes = (AdminOrReadOnly,)
 
 
-class GenreViewSet(CategoryGenreViewSet):
+class GenreViewSet(CreateListDestroyViewSet):
     """View set of genres."""
-    queryset = Genre.objects.all().order_by('-id')
+    queryset = Genre.objects.all()
     serializer_class = GenreSerializer
     filter_backends = (DjangoFilterBackend, SearchFilter)
     search_fields = ('name',)
@@ -150,19 +150,19 @@ class GenreViewSet(CategoryGenreViewSet):
 
 class TitleViewSet(ModelViewSet):
     """View set of titles."""
-    queryset = Title.objects.all().order_by('-id').annotate(
+    queryset = Title.objects.order_by('-id').all().annotate(
         rating=Avg('reviews__score'))
     serializer_class = TitleSerializer
     filter_backends = (DjangoFilterBackend, SearchFilter)
     filterset_class = TitleFilter
 
     def get_permissions(self):
-        if self.action == 'list' or self.action == 'retrieve':
-            return AllowAny(),
-        return AdminPermissions(),
+        if self.request.method in SAFE_METHODS:
+            return (AllowAny(),)
+        return (AdminPermissions(),)
 
     def get_serializer_class(self):
-        if self.request.method in ('POST', 'PATCH',):
+        if self.request.method in ('POST', 'PATCH'):
             return TitleCreateSerializer
         return TitleSerializer
 
@@ -175,7 +175,7 @@ class ReviewsViewSet(viewsets.ModelViewSet):
     def get_queryset(self):
         return get_object_or_404(
             Title, id=self.kwargs.get('title_id')
-        ).reviews.all().order_by('-id')
+        ).reviews.all()
 
     def create(self, request, *args, **kwargs):
         reviews = self.get_queryset()
@@ -203,7 +203,7 @@ class CommentsViewSet(viewsets.ModelViewSet):
         return get_object_or_404(
             Review,
             id=self.kwargs.get('review_id')
-        ).comments.all().order_by('-id')
+        ).comments.all()
 
     def perform_create(self, serializer):
         review = get_object_or_404(Review,

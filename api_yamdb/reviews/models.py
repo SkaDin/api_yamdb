@@ -14,28 +14,29 @@ class CategoryGenreBase(models.Model):
         db_index=True
     )
 
-    def __str__(self):
-        return self.name
-
     class Meta:
         abstract = True
 
 
+    def __str__(self):
+        return self.name
+
 class Category(CategoryGenreBase):
     class Meta:
         verbose_name = 'Категория'
-
+        ordering = ('name',)
 
 class Genre(CategoryGenreBase):
     class Meta:
         verbose_name = 'Жанр'
-
+        ordering = ('name',)
 
 class Title(models.Model):
     name = models.CharField('Наименование произведения', max_length=256)
-    year = models.IntegerField(
+    year = models.SmallIntegerField(
         'Год выпуска',
         validators=[validator_year],
+        db_index=True
     )
     description = models.TextField('Описание')
     genre = models.ManyToManyField(
@@ -91,7 +92,7 @@ class Review(models.Model):
                 name='Review from this author already exist.',
             )
         ]
-
+        ordering = ['-pub_date',]
 
 class Comments(models.Model):
     text = models.CharField(verbose_name='Текст отзыва:', max_length=400)
@@ -104,9 +105,12 @@ class Comments(models.Model):
     pub_date = models.DateTimeField(
         'Дата публикации:',
         auto_now_add=True,
+        db_index=True
     )
     review = models.ForeignKey(
         Review,
         related_name='comments',
         on_delete=models.CASCADE,
     )
+    class Meta:
+        ordering = ['-pub_date',]

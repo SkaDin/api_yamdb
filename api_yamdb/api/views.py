@@ -90,10 +90,9 @@ class RegisterViewSet(CreateViewSet):
         return get_object_or_404(User, **self.kwargs)
 
     def create(self, request, *args, **kwargs):
-        serializer = self.get_serializer(data=request.data)
-        serializer.is_valid(raise_exception=True)
-        self.perform_create(serializer)
-        return Response(serializer.data, status=status.HTTP_200_OK)
+        response = super().create(request, args, kwargs)
+        response.status_code = status.HTTP_200_OK
+        return response
 
     def perform_create(self, serializer):
         user = serializer.save()
@@ -181,10 +180,7 @@ class ReviewsViewSet(viewsets.ModelViewSet):
         reviews = self.get_queryset()
         if reviews.filter(author=self.request.user).exists():
             return Response("Error", status=status.HTTP_400_BAD_REQUEST)
-        serializer = self.get_serializer(data=request.data)
-        serializer.is_valid(raise_exception=True)
-        self.perform_create(serializer)
-        return Response(serializer.data, status=status.HTTP_201_CREATED)
+        return super().create(request, args, kwargs)
 
     def perform_create(self, serializer):
         serializer.save(

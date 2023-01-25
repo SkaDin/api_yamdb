@@ -23,12 +23,12 @@ class CategoryGenreBase(models.Model):
 
 class Category(CategoryGenreBase):
     class Meta:
-        verbose_name = 'Категория'
+        verbose_name = 'Category'
 
 
 class Genre(CategoryGenreBase):
     class Meta:
-        verbose_name = 'Жанр'
+        verbose_name = 'Genre'
 
 
 class Title(models.Model):
@@ -42,7 +42,7 @@ class Title(models.Model):
         Genre,
         db_index=True,
         related_name='titles',
-        verbose_name='Жанр'
+        verbose_name='Genre'
     )
     category = models.ForeignKey(
         Category,
@@ -50,7 +50,7 @@ class Title(models.Model):
         null=True,
         on_delete=models.SET_NULL,
         related_name='titles',
-        verbose_name='Категория'
+        verbose_name='Category'
     )
 
     def __str__(self):
